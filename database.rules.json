@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'agent')",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "properties": {
+      ".read": true,
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'agent' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+    },
+    "bookings": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "reviews": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "wishlists": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "agentEarnings": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'agent' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".write": "auth != null"
+    }
+  }
+}

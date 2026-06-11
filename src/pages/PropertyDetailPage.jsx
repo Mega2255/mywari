@@ -41,7 +41,6 @@ const DEMO_PROPERTY = {
   agentId: 'agent1',
   avgRating: 4.8,
   reviewCount: 24,
-  paystackPublicKey: 'pk_test_xxxxxxxx',
 };
 
 const AMENITY_ICONS = {
@@ -95,18 +94,18 @@ export default function PropertyDetailPage() {
   const serviceFee = Math.round(total * 0.05);
   const grandTotal = total + serviceFee;
 
-  // ─── Paystack public key ───────────────────────────────────────────────────
-  // TODO: Replace with your real key from https://dashboard.paystack.com/#/settings/developers
-  const PAYSTACK_PUBLIC_KEY = 'pk_test_96c3ea5b0044d1ad8059297e717a211d0ea7d7f8';
-  // ──────────────────────────────────────────────────────────────────────────
+  // ─── Flutterwave public key ───────────────────────────────────────────────────
+  // Get this from https://dashboard.flutterwave.com/dashboard/settings/apis
+  const FLW_PUBLIC_KEY = 'FLWPUBK-e8058a967d7fd3f4b820b092eb057f0f-X';
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  const loadPaystackScript = () =>
+  const loadFlutterwaveScript = () =>
     new Promise((resolve, reject) => {
-      if (window.PaystackPop) { resolve(); return; }
+      if (window.FlutterwaveCheckout) { resolve(); return; }
       const script = document.createElement('script');
-      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.src = 'https://checkout.flutterwave.com/v3.js';
       script.onload = resolve;
-      script.onerror = () => reject(new Error('Failed to load Paystack. Check your internet connection.'));
+      script.onerror = () => reject(new Error('Failed to load Flutterwave. Check your internet connection.'));
       document.body.appendChild(script);
     });
 
@@ -117,51 +116,62 @@ export default function PropertyDetailPage() {
       return;
     }
 
-    // Guard: block if Paystack key is still the placeholder
-    if (PAYSTACK_PUBLIC_KEY.includes('xxxxxxxx')) {
-      toast.error('Payment not configured. Add your Paystack public key in PropertyDetailPage.jsx');
+    // Guard: block if Flutterwave key is still the placeholder
+    if (FLW_PUBLIC_KEY.includes('xxxxxxxxxxxx')) {
+      toast.error('Payment not configured. Add your Flutterwave public key in PropertyDetailPage.jsx');
       return;
     }
 
     setBookingLoading(true);
     try {
-      await loadPaystackScript();
+      await loadFlutterwaveScript();
 
-      const splitConfig = property.agentSubaccount
-        ? {
-            split: {
-              type: 'percentage',
-              bearer_type: 'account',
-              subaccounts: [{ subaccount: property.agentSubaccount, share: 40 }],
+      // Build subaccount split if agent has a Flutterwave subaccount ID
+      // Agent gets 40%, the remaining 60% stays in your main Flutterwave account
+      const subaccounts = property.agentFlwSubaccount
+        ? [
+            {
+              id: property.agentFlwSubaccount, // e.g. "RS_xxxxxxxxxxxx"
+              transaction_split_ratio: 40,
             },
-          }
-        : {};
+          ]
+        : undefined;
 
-      const handler = window.PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: userData?.email || currentUser.email,
-        amount: grandTotal * 100, // Paystack expects kobo (₦1 = 100 kobo)
+      window.FlutterwaveCheckout({
+        public_key: FLW_PUBLIC_KEY,
+        tx_ref: 'MWR_' + Date.now(),
+        amount: grandTotal,        // Flutterwave uses naira directly — NOT kobo
         currency: 'NGN',
-        ref: 'MWR_' + Date.now(),
-        metadata: {
-          custom_fields: [
-            { display_name: 'Property', variable_name: 'property', value: property.title },
-            { display_name: 'Check-in', variable_name: 'checkin', value: checkIn || 'N/A' },
-            { display_name: 'Check-out', variable_name: 'checkout', value: checkOut || 'N/A' },
-          ],
+        payment_options: 'card, banktransfer, ussd',
+        customer: {
+          email: userData?.email || currentUser.email,
+          name: userData?.name || 'Guest',
+          phone_number: userData?.phone || '',
         },
-        ...splitConfig,
+        meta: {
+          property: property.title,
+          checkin: checkIn || 'N/A',
+          checkout: checkOut || 'N/A',
+        },
+        ...(subaccounts && { subaccounts }),
+        customizations: {
+          title: 'My Wari',
+          description: `Booking: ${property.title}`,
+          logo: '/favicon.svg',
+        },
         callback: (response) => {
-          // Payment successful — create the booking record
-          createBooking(response.reference);
+          if (response.status === 'successful' || response.status === 'completed') {
+            createBooking(response.transaction_id?.toString() || response.tx_ref);
+          } else {
+            toast.error('Payment was not completed.');
+            setBookingLoading(false);
+          }
         },
-        onClose: () => {
+        onclose: () => {
           toast('Payment window closed. No charge was made.', { icon: '⚠️' });
           setBookingLoading(false);
         },
       });
-
-      handler.openIframe();
     } catch (err) {
       toast.error(err.message || 'Booking failed. Please try again.');
       setBookingLoading(false);
@@ -192,7 +202,6 @@ export default function PropertyDetailPage() {
     const bookingRef = push(ref(db, 'bookings'));
     await set(bookingRef, { ...bookingData, id: bookingRef.key });
     // Update agent earnings
-    // Increment agent earnings correctly (read first, then add)
     const agentEarningsSnap = await get(ref(db, `agentEarnings/${property.agentId}`));
     const prevTotal = agentEarningsSnap.exists() ? (agentEarningsSnap.val().total || 0) : 0;
     await update(ref(db, `agentEarnings/${property.agentId}`), {
@@ -410,7 +419,7 @@ export default function PropertyDetailPage() {
               </button>
 
               <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1">
-                <Shield size={12} /> Secure payment via Paystack
+                <Shield size={12} /> Secure payment via Flutterwave
               </p>
             </div>
 

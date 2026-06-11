@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => signOut(auth);
 
-  const createAgent = async (email, password, name, phone, paystackSubaccount) => {
+  const createAgent = async (email, password, name, phone, flwSubaccount) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await set(ref(db, `users/${cred.user.uid}`), {
       uid: cred.user.uid,
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
       name,
       phone,
       role: 'agent',
-      paystackSubaccount: paystackSubaccount || '',
+      flwSubaccount: flwSubaccount || '',
       createdAt: Date.now(),
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=5C3D2E&color=fff`,
     });

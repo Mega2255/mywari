@@ -46,7 +46,7 @@ function PropertyForm({ property = null, onSave, onCancel }) {
       ...form,
       agentId: currentUser.uid,
       agentName: userData?.name,
-      agentSubaccount: userData?.paystackSubaccount || '',
+      agentFlwSubaccount: userData?.flwSubaccount || '',
       images: form.images.filter(Boolean),
       createdAt: property?.createdAt || Date.now(),
       updatedAt: Date.now(),

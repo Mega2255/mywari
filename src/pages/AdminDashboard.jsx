@@ -101,7 +101,7 @@ function AgentManagement() {
   const [showForm, setShowForm] = useState(searchParams.get('new') === '1');
   const [editingAgent, setEditingAgent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', paystackSubaccount: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', flwSubaccount: '' });
   const [changingCreds, setChangingCreds] = useState({ email: '', password: '' });
   const [saving, setSaving] = useState(false);
 
@@ -123,11 +123,11 @@ function AgentManagement() {
     if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
     setSaving(true);
     try {
-      await createAgent(form.email, form.password, form.name, form.phone, form.paystackSubaccount);
+      await createAgent(form.email, form.password, form.name, form.phone, form.flwSubaccount);
       toast.success(`Agent account created for ${form.name}`);
       setShowForm(false);
       setSearchParams({});
-      setForm({ name: '', email: '', phone: '', password: '', paystackSubaccount: '' });
+      setForm({ name: '', email: '', phone: '', password: '', flwSubaccount: '' });
       fetchAgents();
     } catch (err) {
       toast.error(err.message.includes('email-already-in-use') ? 'Email already in use' : 'Failed to create agent');
@@ -198,8 +198,8 @@ function AgentManagement() {
               <input required type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 6 characters" className="input-field" />
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1.5 block">Paystack Subaccount Code</label>
-              <input value={form.paystackSubaccount} onChange={e => setForm(f => ({ ...f, paystackSubaccount: e.target.value }))} placeholder="ACCT_xxxxxxxxxx (from Paystack dashboard)" className="input-field" />
+              <label className="text-sm font-medium text-gray-700 mb-1.5 block">Flutterwave Subaccount ID</label>
+              <input value={form.flwSubaccount} onChange={e => setForm(f => ({ ...f, flwSubaccount: e.target.value }))} placeholder="RS_xxxxxxxxxxxx (from Flutterwave dashboard)" className="input-field" />
               <p className="text-xs text-gray-400 mt-1">Required for automatic 40% commission splits on bookings</p>
             </div>
             <div className="md:col-span-2 flex gap-3">
@@ -267,7 +267,7 @@ function AgentManagement() {
                     <th className="px-4 py-3 text-left">Agent</th>
                     <th className="px-4 py-3 text-left">Email</th>
                     <th className="px-4 py-3 text-left">Phone</th>
-                    <th className="px-4 py-3 text-left">Paystack</th>
+                    <th className="px-4 py-3 text-left">Flutterwave</th>
                     <th className="px-4 py-3 text-left">Joined</th>
                     <th className="px-4 py-3 text-left">Actions</th>
                   </tr>
@@ -287,7 +287,7 @@ function AgentManagement() {
                       <td className="px-4 py-3 text-sm text-gray-600">{agent.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{agent.phone}</td>
                       <td className="px-4 py-3 text-sm">
-                        {agent.paystackSubaccount ? (
+                        {agent.flwSubaccount ? (
                           <span className="flex items-center gap-1 text-green-600"><CheckCircle size={12} /> Set</span>
                         ) : (
                           <span className="text-amber-500 text-xs">Not set</span>

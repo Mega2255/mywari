@@ -71,7 +71,7 @@ export const generateReceipt = async (booking) => {
   // Website URL
   doc.setFontSize(8);
   doc.setTextColor(210, 230, 180);
-  doc.text('www.mywari.ng  |  hello@mywari.ng  |  +234 800 MY WARI', 52, 30);
+  doc.text('www.mywari.com.ng  |  hello@mywari.com  |  +234 816 298 3569  MY WARI', 52, 30);
 
   // ─── RECEIPT TITLE ROW ──────────────────────────────────────
   doc.setTextColor(...dark);
@@ -85,7 +85,7 @@ export const generateReceipt = async (booking) => {
   doc.setTextColor(...success);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('✔  CONFIRMED', W - 50, 76.5);
+  doc.text('CONFIRMED', W - 50, 76.5);
 
   // Meta row
   doc.setFontSize(9);
@@ -164,10 +164,10 @@ export const generateReceipt = async (booking) => {
     startY: tableStartY + 2,
     head: [['', '']],
     body: [
-      ['📅  Check-in',         booking.checkIn  || '—'],
-      ['📅  Check-out',        booking.checkOut || '—'],
-      ['🌙  Duration',         `${booking.nights || 0} night(s)`],
-      ['🔖  Payment Reference', booking.paymentRef || 'N/A'],
+      ['Check-in',          booking.checkIn  || '—'],
+      ['Check-out',         booking.checkOut || '—'],
+      ['Duration',          `${booking.nights || 0} night(s)`],
+      ['Payment Reference', booking.paymentRef || 'N/A'],
     ],
     showHead: false,
     styles:          { fontSize: 10, cellPadding: 5 },
@@ -195,9 +195,9 @@ export const generateReceipt = async (booking) => {
   doc.autoTable({
     startY: payY + 2,
     body: [
-      ['Base Price',     `₦${basePrice.toLocaleString()}`],
-      ['Service Fee (5%)', `₦${serviceFee.toLocaleString()}`],
-      ['TOTAL PAID',     `₦${total.toLocaleString()}`],
+      ['Base Price',       `\u20A6${basePrice.toLocaleString()}`],
+      ['Service Fee (5%)', `\u20A6${serviceFee.toLocaleString()}`],
+      ['TOTAL PAID',       `\u20A6${total.toLocaleString()}`],
     ],
     styles:          { fontSize: 10, cellPadding: 6 },
     columnStyles: {
@@ -243,7 +243,7 @@ export const generateReceipt = async (booking) => {
   doc.setFontSize(8);
   doc.setTextColor(...mid);
   doc.text(
-    'My Wari  |  hello@mywari.ng  |  +234 800 MY WARI  |  www.mywari.ng',
+    'My Wari  |  hello@mywari.com  |  +234 816 298 3569 MY WARI  |  www.mywari.com.ng',
     W / 2, H - 11, { align: 'center' },
   );
   doc.text('Victoria Island, Lagos, Nigeria', W / 2, H - 5, { align: 'center' });

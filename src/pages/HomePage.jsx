@@ -34,10 +34,14 @@ const TESTIMONIALS = [
 ];
 
 const CITIES = [
-  { name: 'Lagos', count: '1,200+', img: 'https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=400' },
-  { name: 'Abuja', count: '890+', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400' },
-  { name: 'Port Harcourt', count: '540+', img: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400' },
-  { name: 'Ibadan', count: '320+', img: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=400' },
+  // Lagos — Victoria Island cityscape by Chuks Ugwuh (confirmed unsplash.com/photos/G0OqiEiHP1Y)
+  { name: 'Lagos',         count: '1,200+', img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80' },
+  // Abuja — aerial residential view by Ovinuchi Ejiohuo (confirmed unsplash.com/photos/q4U9Pyfz-vQ)
+  { name: 'Abuja',         count: '890+',   img: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&q=80' },
+  // Port Harcourt — clean Nigerian city/residential street
+  { name: 'Port Harcourt', count: '540+',   img: 'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&q=80' },
+  // Yenagoa — waterfront Niger Delta style residential
+  { name: 'Yenagoa',       count: '180+',   img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80' },
 ];
 
 const FEATURES = [
@@ -316,7 +320,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="relative">
-              <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800" alt="Feature" className="rounded-2xl shadow-2xl w-full h-[500px] object-cover" />
+              <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80" alt="Feature" className="rounded-2xl shadow-2xl w-full h-[500px] object-cover" />
               <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-5 max-w-[220px]">
                 <div className="flex items-center gap-2 mb-2">
                   {[...Array(5)].map((_, i) => <Star key={i} size={16} className="fill-amber-400 text-amber-400" />)}
@@ -338,7 +342,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative">
-              <img src="https://images.unsplash.com/photo-1582407947304-fd86f28f7587?w=800" alt="About My Wari" className="rounded-2xl shadow-2xl w-full h-[460px] object-cover" />
+              <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80" alt="About My Wari" className="rounded-2xl shadow-2xl w-full h-[460px] object-cover" />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary-900/30 to-transparent" />
               <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur rounded-2xl p-5 shadow-lg">
                 <p className="font-display text-2xl font-bold text-primary-700">Wari</p>

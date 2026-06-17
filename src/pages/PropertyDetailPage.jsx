@@ -127,15 +127,15 @@ export default function PropertyDetailPage() {
       await loadFlutterwaveScript();
 
       // Build subaccount split if agent has a Flutterwave subaccount ID
-      // Agent gets 40%, the remaining 60% stays in your main Flutterwave account
+      // Agent gets 97%, the remaining 3% stays in your main Flutterwave account
       const subaccounts = property.agentFlwSubaccount
-        ? [
-            {
-              id: property.agentFlwSubaccount, // e.g. "RS_xxxxxxxxxxxx"
-              transaction_split_ratio: 40,
-            },
-          ]
-        : undefined;
+  ? [
+      {
+        id: property.agentFlwSubaccount,
+        transaction_split_ratio: 96,  // was 97
+      },
+    ]
+  : undefined;
 
       window.FlutterwaveCheckout({
         public_key: FLW_PUBLIC_KEY,
@@ -205,9 +205,9 @@ export default function PropertyDetailPage() {
     const agentEarningsSnap = await get(ref(db, `agentEarnings/${property.agentId}`));
     const prevTotal = agentEarningsSnap.exists() ? (agentEarningsSnap.val().total || 0) : 0;
     await update(ref(db, `agentEarnings/${property.agentId}`), {
-      total: prevTotal + Math.round(grandTotal * 0.4),
-      lastBooking: Date.now(),
-    });
+  total: prevTotal + Math.round(grandTotal * 0.96),  // was 0.97
+  lastBooking: Date.now(),
+});
     toast.success('🎉 Booking confirmed! Receipt downloading...');
     generateReceipt({ ...bookingData, id: bookingRef.key });
     navigate('/dashboard/bookings');

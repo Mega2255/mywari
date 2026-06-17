@@ -261,7 +261,7 @@ function AgentBookings() {
     }).catch(() => {});
   }, []);
 
-  const earnings = bookings.reduce((sum, b) => sum + (b.total * 0.4), 0);
+  const earnings = bookings.reduce((sum, b) => sum + (b.total * 0.96), 0);
 
   return (
     <div>
@@ -270,7 +270,7 @@ function AgentBookings() {
         <div className="bg-primary-700 text-white rounded-2xl p-5">
           <DollarSign size={24} className="mb-2 text-primary-300" />
           <p className="text-2xl font-bold">₦{earnings.toLocaleString()}</p>
-          <p className="text-primary-200 text-sm">Total Earnings (40%)</p>
+          <p className="text-primary-200 text-sm">Total Earnings (96%)</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <BookOpen size={24} className="mb-2 text-primary-600" />
@@ -292,8 +292,8 @@ function AgentBookings() {
                 <p className="text-sm text-gray-500">{b.userName} · {b.checkIn} → {b.checkOut}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-primary-700">+₦{(b.total * 0.4).toLocaleString()}</p>
-                <p className="text-xs text-gray-400">your 40% share</p>
+                <p className="font-bold text-primary-700">+₦{(b.total * 0.96).toLocaleString()}</p>
+                <p className="text-xs text-gray-400">your 96% share</p>
               </div>
             </div>
           </div>

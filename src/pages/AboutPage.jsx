@@ -62,7 +62,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1582407947304-fd86f28f7587?w=800"
+                src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80"
                 alt="About My Wari"
                 className="rounded-3xl shadow-2xl w-full h-[520px] object-cover"
               />

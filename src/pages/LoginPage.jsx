@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ref, get } from 'firebase/database';
+import { db } from '../firebase';
 import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
-  const { login, userRole } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [show, setShow] = useState(false);
@@ -15,15 +17,21 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      const cred = await login(form.email, form.password);
+      const snap = await get(ref(db, `users/${cred.user.uid}`));
+      const role = snap.val()?.role;
+
       toast.success('Welcome back!');
-      // Redirect based on role — useAuth will update after login
-      setTimeout(() => {
-        // We'll redirect in App via the role
-        navigate('/');
-      }, 500);
+
+      if (role === 'admin') navigate('/admin');
+      else if (role === 'agent') navigate('/agent');
+      else navigate('/dashboard');
     } catch (err) {
-      toast.error(err.message.includes('user-not-found') ? 'Account not found' : err.message.includes('wrong-password') ? 'Wrong password' : 'Login failed. Try again.');
+      toast.error(
+        err.message.includes('user-not-found') ? 'Account not found' :
+        err.message.includes('wrong-password') ? 'Wrong password' :
+        'Login failed. Try again.'
+      );
     }
     setLoading(false);
   };

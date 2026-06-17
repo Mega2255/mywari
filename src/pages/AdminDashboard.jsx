@@ -24,7 +24,7 @@ function AdminOverview({ stats }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Revenue', val: `₦${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-100 text-green-700', sub: 'admin 60% share' },
+          { label: 'Total Revenue', val: `₦${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-100 text-green-700', sub: 'admin 4% share' },
           { label: 'Total Bookings', val: stats.totalBookings, icon: BookOpen, color: 'bg-blue-100 text-blue-700', sub: 'all time' },
           { label: 'Total Properties', val: stats.totalProperties, icon: Building, color: 'bg-amber-100 text-amber-700', sub: 'listed' },
           { label: 'Total Users', val: stats.totalUsers, icon: Users, color: 'bg-purple-100 text-purple-700', sub: 'registered' },
@@ -64,20 +64,20 @@ function AdminOverview({ stats }) {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-primary-200">Admin Share (60%)</span>
+                <span className="text-primary-200">Admin Share (4%)</span>
                 <span className="font-bold">₦{stats.adminRevenue.toLocaleString()}</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
-                <div className="bg-white rounded-full h-2" style={{ width: '60%' }} />
+                <div className="bg-white rounded-full h-2" style={{ width: '4%' }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-primary-200">Agent Earnings (40%)</span>
+                <span className="text-primary-200">Agent Earnings (96%)</span>
                 <span className="font-bold">₦{stats.agentRevenue.toLocaleString()}</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
-                <div className="bg-primary-300 rounded-full h-2" style={{ width: '40%' }} />
+                <div className="bg-primary-300 rounded-full h-2" style={{ width: '96%' }} />
               </div>
             </div>
             <div className="border-t border-white/20 pt-3">
@@ -200,7 +200,7 @@ function AgentManagement() {
             <div className="md:col-span-2">
               <label className="text-sm font-medium text-gray-700 mb-1.5 block">Flutterwave Subaccount ID</label>
               <input value={form.flwSubaccount} onChange={e => setForm(f => ({ ...f, flwSubaccount: e.target.value }))} placeholder="RS_xxxxxxxxxxxx (from Flutterwave dashboard)" className="input-field" />
-              <p className="text-xs text-gray-400 mt-1">Required for automatic 40% commission splits on bookings</p>
+              <p className="text-xs text-gray-400 mt-1">Required for automatic 96% commission splits on bookings</p>
             </div>
             <div className="md:col-span-2 flex gap-3">
               <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2">
@@ -437,8 +437,8 @@ function AdminBookings() {
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="font-bold text-gray-900">₦{parseInt(b.total || 0).toLocaleString()}</p>
-                  <p className="text-xs text-green-600">Admin: ₦{Math.round(b.total * 0.6).toLocaleString()}</p>
-                  <p className="text-xs text-amber-600">Agent: ₦{Math.round(b.total * 0.4).toLocaleString()}</p>
+                  <p className="text-xs text-green-600">Admin: ₦{Math.round(b.total * 0.04).toLocaleString()}</p>
+                  <p className="text-xs text-amber-600">Agent: ₦{Math.round(b.total * 0.96).toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2">
                   <span className={`badge text-xs capitalize ${b.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{b.status}</span>
@@ -553,8 +553,8 @@ function AdminFinances() {
   }, []);
 
   const totalRevenue = bookings.reduce((sum, b) => sum + (parseInt(b.total) || 0), 0);
-  const adminShare = Math.round(totalRevenue * 0.6);
-  const agentShare = Math.round(totalRevenue * 0.4);
+  const adminShare = Math.round(totalRevenue * 0.04);
+  const agentShare = Math.round(totalRevenue * 0.96);
 
   // Group by month
   const byMonth = bookings.reduce((acc, b) => {
@@ -576,12 +576,12 @@ function AdminFinances() {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <DollarSign size={24} className="mb-2 text-green-600" />
           <p className="text-3xl font-bold text-gray-800">₦{adminShare.toLocaleString()}</p>
-          <p className="text-gray-500 text-sm">Admin Revenue (60%)</p>
+          <p className="text-gray-500 text-sm">Admin Revenue (4%)</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <Users size={24} className="mb-2 text-amber-600" />
           <p className="text-3xl font-bold text-gray-800">₦{agentShare.toLocaleString()}</p>
-          <p className="text-gray-500 text-sm">Total Agent Payouts (40%)</p>
+          <p className="text-gray-500 text-sm">Total Agent Payouts (96%)</p>
         </div>
       </div>
 
@@ -618,8 +618,8 @@ function AdminFinances() {
                 <th className="px-4 py-3 text-left">Guest</th>
                 <th className="px-4 py-3 text-left">Agent</th>
                 <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3 text-right">Admin (60%)</th>
-                <th className="px-4 py-3 text-right">Agent (40%)</th>
+                <th className="px-4 py-3 text-right">Admin (4%)</th>
+                <th className="px-4 py-3 text-right">Agent (96%)</th>
                 <th className="px-4 py-3 text-left">Ref</th>
               </tr>
             </thead>
@@ -631,8 +631,8 @@ function AdminFinances() {
                   <td className="px-4 py-3 text-gray-600">{b.userName}</td>
                   <td className="px-4 py-3 text-gray-600">{b.agentName}</td>
                   <td className="px-4 py-3 text-right font-bold text-gray-900">₦{parseInt(b.total || 0).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-green-700 font-semibold">₦{Math.round((b.total || 0) * 0.6).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-amber-700 font-semibold">₦{Math.round((b.total || 0) * 0.4).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right text-green-700 font-semibold">₦{Math.round((b.total || 0) * 0.04).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right text-amber-700 font-semibold">₦{Math.round((b.total || 0) * 0.96).toLocaleString()}</td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{b.paymentRef?.slice(-10)}</td>
                 </tr>
               ))}
@@ -675,8 +675,8 @@ export default function AdminDashboard() {
         const totalRevenue = bookings.reduce((s, b) => s + parseInt(b.total || 0), 0);
         setStats({
           totalRevenue,
-          adminRevenue: Math.round(totalRevenue * 0.6),
-          agentRevenue: Math.round(totalRevenue * 0.4),
+          adminRevenue: Math.round(totalRevenue * 0.04),
+          agentRevenue: Math.round(totalRevenue * 0.96),
           totalBookings: bookings.length,
           totalProperties: pSnap.exists() ? Object.keys(pSnap.val()).length : 0,
           totalUsers: uSnap.exists() ? Object.keys(uSnap.val()).length : 0,

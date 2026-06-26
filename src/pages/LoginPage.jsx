@@ -27,9 +27,13 @@ export default function LoginPage() {
       else if (role === 'agent') navigate('/agent');
       else navigate('/dashboard');
     } catch (err) {
+      const code = err.code || '';
       toast.error(
-        err.message.includes('user-not-found') ? 'Account not found' :
-        err.message.includes('wrong-password') ? 'Wrong password' :
+        code === 'auth/user-not-found' ? 'Account not found' :
+        code === 'auth/wrong-password' ? 'Wrong password' :
+        code === 'auth/invalid-credential' ? 'Wrong email or password' :
+        code === 'auth/too-many-requests' ? 'Too many attempts. Try again later' :
+        code === 'auth/invalid-email' ? 'Enter a valid email address' :
         'Login failed. Try again.'
       );
     }
@@ -84,7 +88,7 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-sm font-medium text-gray-700">Password</label>
-                <a href="#" className="text-xs text-primary-600 hover:underline">Forgot password?</a>
+                <Link to="/forgot-password" className="text-xs text-primary-600 hover:underline">Forgot password?</Link>
               </div>
               <div className="relative">
                 <input
@@ -117,12 +121,6 @@ export default function LoginPage() {
             <Link to="/register" className="text-primary-600 font-semibold hover:underline">Create one free</Link>
           </p>
 
-          {/* Demo credentials */}
-          <div className="mt-8 bg-primary-50 border border-primary-100 rounded-xl p-4 text-sm">
-            <p className="font-semibold text-primary-800 mb-2">Demo Credentials:</p>
-            <p className="text-primary-700">Admin: admin@mywari.ng / admin123</p>
-            <p className="text-primary-700">Agent: agent@mywari.ng / agent123</p>
-          </div>
         </div>
       </div>
     </div>

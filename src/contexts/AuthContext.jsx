@@ -6,6 +6,7 @@ import {
   onAuthStateChanged,
   updateEmail,
   updatePassword,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { ref, set, get, update } from 'firebase/database';
 import { auth, db } from '../firebase';
@@ -39,6 +40,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => signOut(auth);
+
+  const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
+  };
 
   const createAgent = async (email, password, name, phone, flwSubaccount) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -89,6 +94,7 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    resetPassword,
     createAgent,
     updateAgentCredentials,
   };

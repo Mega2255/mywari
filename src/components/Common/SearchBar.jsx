@@ -1,15 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ref, get } from 'firebase/database';
+import { db } from '../../firebase';
 import { Search, MapPin, Home, Calendar } from 'lucide-react';
 
 const PROPERTY_TYPES = ['All', 'Shortlet', 'Rent', 'Sale'];
-const CITIES = ['Lagos', 'Abuja', 'Port Harcourt', 'Yenagoa', 'Enugu', 'Benin City', 'Uyo'];
+const DEFAULT_CITIES = ['Lagos', 'Abuja', 'Port Harcourt', 'Yenagoa', 'Enugu', 'Benin City', 'Uyo'];
 
 export default function SearchBar({ compact = false }) {
   const [query, setQuery] = useState('');
   const [type, setType] = useState('All');
   const [city, setCity] = useState('');
+  const [cities, setCities] = useState(DEFAULT_CITIES);
   const navigate = useNavigate();
+
+  // Pull the live set of cities from listed properties (so any city an agent
+  // typed in while adding a property shows up here too), merged with the
+  // defaults so the dropdown never looks empty before data loads.
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const snap = await get(ref(db, 'properties'));
+        if (snap.exists()) {
+          const liveCities = Object.values(snap.val())
+            .map(p => p.city)
+            .filter(Boolean);
+          const merged = Array.from(new Set([...DEFAULT_CITIES, ...liveCities])).sort();
+          setCities(merged);
+        }
+      } catch {
+        // keep defaults on failure
+      }
+    };
+    fetchCities();
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -50,7 +74,7 @@ export default function SearchBar({ compact = false }) {
               className="block w-full text-sm text-gray-800 bg-transparent outline-none font-medium"
             >
               <option value="">Any City</option>
-              {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {cities.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>

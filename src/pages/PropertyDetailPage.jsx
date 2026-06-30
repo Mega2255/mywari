@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import {
   MapPin, Bed, Bath, Square, Wifi, Car, Tv, Wind, ChevronLeft,
   ChevronRight, Heart, Share2, Star, Calendar, Phone, MessageSquare,
-  CheckCircle, Shield, Download, X
+  CheckCircle, Shield, Download, X, Play
 } from 'lucide-react';
 
 const DEMO_PROPERTY = {
@@ -36,6 +36,7 @@ const DEMO_PROPERTY = {
     'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80',
     'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80',
   ],
+  videoUrl: '',
   agentName: 'Chidi Okafor',
   agentPhone: '+234 801 234 5678',
   agentId: 'agent1',
@@ -47,6 +48,13 @@ const AMENITY_ICONS = {
   WiFi: '📶', 'Air Conditioning': '❄️', Parking: '🚗', 'Swimming Pool': '🏊',
   'Smart TV': '📺', Security: '🔒', Gym: '💪', Generator: '⚡', 'Water Supply': '💧', DSTV: '📡',
 };
+
+// Returns the 11-char YouTube video ID from a variety of YouTube URL formats, or null if not YouTube
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m ? m[1] : null;
+}
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -94,6 +102,12 @@ export default function PropertyDetailPage() {
   const serviceFee = Math.round(total * 0.05);
   const grandTotal = total + serviceFee;
 
+  // Combined gallery media: images first, then the property video (if any) as the last slide
+  const media = [
+    ...(property.images || []).map(src => ({ type: 'image', src })),
+    ...(property.videoUrl ? [{ type: 'video', src: property.videoUrl }] : []),
+  ];
+
   // ─── Flutterwave public key ───────────────────────────────────────────────────
   // Get this from https://dashboard.flutterwave.com/dashboard/settings/apis
   const FLW_PUBLIC_KEY = 'FLWPUBK-e8058a967d7fd3f4b820b092eb057f0f-X';
@@ -127,7 +141,7 @@ export default function PropertyDetailPage() {
       await loadFlutterwaveScript();
 
       // Build subaccount split if agent has a Flutterwave subaccount ID
-      // Agent gets 97%, the remaining 3% stays in your main Flutterwave account
+      // Agent gets 96%, the remaining 4% stays in your main Flutterwave account
       const subaccounts = property.agentFlwSubaccount
   ? [
       {
@@ -259,29 +273,47 @@ export default function PropertyDetailPage() {
         </div>
 
         {/* Gallery */}
-        <div className="relative rounded-2xl overflow-hidden mb-8 h-[400px] md:h-[500px] group">
-          <img src={property.images?.[currentImg]} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/10" />
-          {property.images?.length > 1 && (
+        <div className="relative rounded-2xl overflow-hidden mb-8 h-[400px] md:h-[500px] group bg-black">
+          {media[currentImg]?.type === 'video' ? (
+            getYouTubeId(media[currentImg].src) ? (
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${getYouTubeId(media[currentImg].src)}`}
+                title="Property video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video src={media[currentImg].src} controls className="w-full h-full object-cover bg-black" />
+            )
+          ) : (
+            <img src={media[currentImg]?.src} alt="" className="w-full h-full object-cover" />
+          )}
+          <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+          {media.length > 1 && (
             <>
-              <button onClick={() => setCurrentImg(i => (i - 1 + property.images.length) % property.images.length)} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors">
+              <button onClick={() => setCurrentImg(i => (i - 1 + media.length) % media.length)} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
                 <ChevronLeft size={20} />
               </button>
-              <button onClick={() => setCurrentImg(i => (i + 1) % property.images.length)} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors">
+              <button onClick={() => setCurrentImg(i => (i + 1) % media.length)} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
                 <ChevronRight size={20} />
               </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {property.images.map((_, i) => (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {media.map((_, i) => (
                   <button key={i} onClick={() => setCurrentImg(i)} className={`w-2 h-2 rounded-full transition-all ${i === currentImg ? 'bg-white w-6' : 'bg-white/50'}`} />
                 ))}
               </div>
             </>
           )}
           {/* Thumbnail strip */}
-          <div className="absolute bottom-4 right-4 flex gap-2">
-            {property.images?.slice(0, 4).map((img, i) => (
-              <button key={i} onClick={() => setCurrentImg(i)} className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${i === currentImg ? 'border-white' : 'border-transparent opacity-70'}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" />
+          <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+            {media.slice(0, 4).map((m, i) => (
+              <button key={i} onClick={() => setCurrentImg(i)} className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all flex items-center justify-center bg-black ${i === currentImg ? 'border-white' : 'border-transparent opacity-70'}`}>
+                {m.type === 'video' ? (
+                  <Play size={16} className="text-white fill-white" />
+                ) : (
+                  <img src={m.src} alt="" className="w-full h-full object-cover" />
+                )}
               </button>
             ))}
           </div>

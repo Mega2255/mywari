@@ -8,6 +8,8 @@ import PropertyCard from '../components/Common/PropertyCard';
 import SearchBar from '../components/Common/SearchBar';
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 
+const DEFAULT_CITIES = ['Lagos', 'Abuja', 'Port Harcourt', 'Yenagoa', 'Enugu', 'Benin City', 'Uyo'];
+
 const DEMO_PROPERTIES = [
   { id: '1', title: 'Luxury 3BR Apartment Lekki', type: 'shortlet', price: '45000', city: 'Lagos', location: 'Lekki Phase 1', bedrooms: 3, bathrooms: 3, images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'], avgRating: 4.8, agentName: 'Chidi Okafor' },
   { id: '2', title: 'Modern Studio Victoria Island', type: 'shortlet', price: '25000', city: 'Lagos', location: 'Victoria Island', bedrooms: 1, bathrooms: 1, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'], avgRating: 4.6, agentName: 'Amaka Eze' },
@@ -58,7 +60,7 @@ export default function SearchPage() {
   useEffect(() => {
     let result = [...properties];
     const q = searchParams.get('q')?.toLowerCase();
-    if (q) result = result.filter(p => p.title?.toLowerCase().includes(q) || p.location?.toLowerCase().includes(q));
+    if (q) result = result.filter(p => p.title?.toLowerCase().includes(q) || p.location?.toLowerCase().includes(q) || p.city?.toLowerCase().includes(q));
     if (filters.type) result = result.filter(p => p.type === filters.type);
     if (filters.city) result = result.filter(p => p.city?.toLowerCase() === filters.city.toLowerCase());
     if (filters.minPrice) result = result.filter(p => parseInt(p.price) >= parseInt(filters.minPrice));
@@ -71,6 +73,13 @@ export default function SearchPage() {
   }, [filters, properties, searchParams]);
 
   const clearFilters = () => setFilters({ type: '', city: '', minPrice: '', maxPrice: '', bedrooms: '', sortBy: 'newest' });
+
+  // Merge default cities with any city an agent has typed in while listing a property,
+  // so newly-added cities automatically show up as a filter option.
+  const ALL_CITIES = Array.from(new Set([
+    ...DEFAULT_CITIES,
+    ...properties.map(p => p.city).filter(Boolean),
+  ])).sort();
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -122,7 +131,7 @@ export default function SearchPage() {
                   <label className="text-xs font-medium text-gray-600 mb-1 block">City</label>
                   <select value={filters.city} onChange={e => setFilters(f => ({ ...f, city: e.target.value }))} className="input-field text-sm py-2">
                     <option value="">All Cities</option>
-                    {['Lagos', 'Abuja', 'Port Harcourt', 'Yenagoa', 'Enugu', 'Benin City', 'Uyo'].map(c => <option key={c}>{c}</option>)}
+                    {ALL_CITIES.map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>

@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Common/Navbar';
 import { generateReceipt } from '../utils/receipt';
 import {
-  LayoutDashboard, Building, BookOpen, Users, LogOut, Plus, Edit,
+  LayoutDashboard, Building, BookOpen, LogOut, Plus, Edit,
   Trash2, Eye, TrendingUp, Upload, X, Save, DollarSign, Star, MapPin
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -31,7 +31,11 @@ function PropertyForm({ property = null, onSave, onCancel }) {
     lng: property?.lng || '3.3792',
     amenities: property?.amenities || [],
     images: property?.images || [''],
+    videoUrl: property?.videoUrl || '',
   });
+  const [customCity, setCustomCity] = useState(
+    !!(property?.city && !CITIES.includes(property.city))
+  );
   const [saving, setSaving] = useState(false);
 
   const toggleAmenity = (a) => setForm(f => ({
@@ -48,6 +52,7 @@ function PropertyForm({ property = null, onSave, onCancel }) {
       agentName: userData?.name,
       agentFlwSubaccount: userData?.flwSubaccount || '',
       images: form.images.filter(Boolean),
+      videoUrl: form.videoUrl?.trim() || '',
       createdAt: property?.createdAt || Date.now(),
       updatedAt: Date.now(),
       status: 'active',
@@ -96,10 +101,44 @@ function PropertyForm({ property = null, onSave, onCancel }) {
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 mb-1.5 block">City *</label>
-            <select required value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className="input-field">
-              <option value="">Select city</option>
-              {CITIES.map(c => <option key={c}>{c}</option>)}
-            </select>
+            {!customCity ? (
+              <select
+                required
+                value={form.city}
+                onChange={e => {
+                  if (e.target.value === '__other__') {
+                    setCustomCity(true);
+                    setForm(f => ({ ...f, city: '' }));
+                  } else {
+                    setForm(f => ({ ...f, city: e.target.value }));
+                  }
+                }}
+                className="input-field"
+              >
+                <option value="">Select city</option>
+                {CITIES.map(c => <option key={c}>{c}</option>)}
+                <option value="__other__">+ Add a new city...</option>
+              </select>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  required
+                  autoFocus
+                  value={form.city}
+                  onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
+                  placeholder="Type city name e.g. Calabar"
+                  className="input-field flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setCustomCity(false); setForm(f => ({ ...f, city: '' })); }}
+                  className="text-gray-400 hover:text-gray-600 px-2"
+                  title="Choose from list instead"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 mb-1.5 block">Area/Neighborhood *</label>
@@ -144,6 +183,18 @@ function PropertyForm({ property = null, onSave, onCancel }) {
             </div>
           ))}
           <button type="button" onClick={() => setForm(f => ({ ...f, images: [...f.images, ''] }))} className="text-primary-600 text-sm hover:underline">+ Add another image URL</button>
+        </div>
+
+        {/* Video URL */}
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-1.5 block">Property Video URL (optional)</label>
+          <input
+            value={form.videoUrl}
+            onChange={e => setForm(f => ({ ...f, videoUrl: e.target.value }))}
+            placeholder="YouTube link or direct .mp4 URL"
+            className="input-field"
+          />
+          <p className="text-xs text-gray-400 mt-1">Paste a YouTube link, or a direct video file URL (.mp4, .mov). It will appear in the property gallery alongside your photos.</p>
         </div>
 
         {/* Amenities */}
@@ -230,7 +281,12 @@ function AgentProperties() {
               <div className="flex-1">
                 <div className="flex items-start justify-between flex-wrap gap-2">
                   <h3 className="font-display font-bold text-gray-800">{p.title}</h3>
-                  <span className={`badge capitalize ${p.type === 'shortlet' ? 'bg-blue-100 text-blue-700' : p.type === 'rent' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{p.type}</span>
+                  <div className="flex items-center gap-2">
+                    {p.videoUrl && (
+                      <span className="badge bg-purple-100 text-purple-700">🎬 Video</span>
+                    )}
+                    <span className={`badge capitalize ${p.type === 'shortlet' ? 'bg-blue-100 text-blue-700' : p.type === 'rent' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>{p.type}</span>
+                  </div>
                 </div>
                 <p className="text-gray-500 text-sm mt-1 flex items-center gap-1"><MapPin size={12} />{p.location}, {p.city}</p>
                 <p className="font-bold text-primary-700 mt-1">₦{parseInt(p.price).toLocaleString()}{p.type === 'shortlet' ? '/night' : p.type === 'rent' ? '/yr' : ''}</p>
@@ -309,54 +365,10 @@ function AgentBookings() {
   );
 }
 
-function AgentUsers() {
-  const [users, setUsers] = useState([]);
-  useEffect(() => {
-    get(ref(db, 'users')).then(snap => {
-      if (snap.exists()) setUsers(Object.values(snap.val()).filter(u => u.role === 'user'));
-    }).catch(() => {});
-  }, []);
-
-  return (
-    <div>
-      <h2 className="font-display text-2xl font-bold text-gray-800 mb-6">All Users ({users.length})</h2>
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            <tr>
-              <th className="px-4 py-3 text-left">User</th>
-              <th className="px-4 py-3 text-left">Email</th>
-              <th className="px-4 py-3 text-left">Phone</th>
-              <th className="px-4 py-3 text-left">Joined</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {users.map(u => (
-              <tr key={u.uid} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <img src={u.avatar} alt="" className="w-8 h-8 rounded-full" />
-                    <span className="font-medium text-gray-800 text-sm">{u.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">{u.email}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{u.phone}</td>
-                <td className="px-4 py-3 text-sm text-gray-500">{new Date(u.createdAt).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {users.length === 0 && <p className="text-center py-10 text-gray-400">No users yet</p>}
-      </div>
-    </div>
-  );
-}
-
 const AGENT_NAV = [
   { icon: LayoutDashboard, label: 'Overview', path: '/agent' },
   { icon: Building, label: 'Properties', path: '/agent/properties' },
   { icon: BookOpen, label: 'Bookings', path: '/agent/bookings' },
-  { icon: Users, label: 'Users', path: '/agent/users' },
 ];
 
 export default function AgentDashboard() {
@@ -412,7 +424,6 @@ export default function AgentDashboard() {
               } />
               <Route path="properties" element={<AgentProperties />} />
               <Route path="bookings" element={<AgentBookings />} />
-              <Route path="users" element={<AgentUsers />} />
             </Routes>
           </div>
         </main>

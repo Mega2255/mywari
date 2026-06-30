@@ -33,16 +33,29 @@ const TESTIMONIALS = [
   { name: 'Emeka Okafor', role: 'Agent', text: 'As an agent, My Wari has tripled my bookings. The platform is easy to use and payments are always on time.', rating: 5, avatar: 'https://ui-avatars.com/api/?name=Emeka+Okafor&background=5C3D2E&color=fff' },
 ];
 
-const CITIES = [
+// Curated "hero" cities — always shown first, each with a hand-picked photo.
+// These stay fixed regardless of what's in the database.
+const CURATED_CITIES = [
   // Lagos — Victoria Island cityscape by Chuks Ugwuh (confirmed unsplash.com/photos/G0OqiEiHP1Y)
-  { name: 'Lagos',         count: '1,200+', img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80' },
+  { name: 'Lagos',         img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80' },
   // Abuja — aerial residential view by Ovinuchi Ejiohuo (confirmed unsplash.com/photos/q4U9Pyfz-vQ)
-  { name: 'Abuja',         count: '890+',   img: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&q=80' },
+  { name: 'Abuja',         img: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&q=80' },
   // Port Harcourt — clean Nigerian city/residential street
-  { name: 'Port Harcourt', count: '540+',   img: 'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&q=80' },
+  { name: 'Port Harcourt', img: 'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&q=80' },
   // Yenagoa — waterfront Niger Delta style residential
-  { name: 'Yenagoa',       count: '180+',   img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80' },
+  { name: 'Yenagoa',       img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80' },
 ];
+
+// Generic fallback photo used for any city an agent adds that doesn't have a
+// hand-picked image yet (e.g. a brand-new city typed in on the Add Property form).
+const FALLBACK_CITY_IMG = 'https://images.unsplash.com/photo-1577415124269-fc1140a69e91?w=800&q=80';
+
+// Minimum number of live listings a non-curated city needs before it earns its
+// own tile on the homepage — keeps a single test listing from triggering a tile.
+const MIN_LISTINGS_FOR_CITY_TILE = 1;
+
+// Max number of extra (non-curated) city tiles to show alongside the curated ones.
+const MAX_EXTRA_CITY_TILES = 4;
 
 const FEATURES = [
   { icon: Shield, title: 'Verified Properties', desc: 'Every listing is verified by our team before going live' },
@@ -93,6 +106,7 @@ function AppStoreBadge({ store }) {
 
 export default function HomePage() {
   const [properties, setProperties] = useState([]);
+  const [allProperties, setAllProperties] = useState([]); // unfiltered/uncapped, used for city counts
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
 
@@ -104,14 +118,18 @@ export default function HomePage() {
         if (snap.exists()) {
           const data = Object.entries(snap.val())
             .map(([id, p]) => ({ id, ...p }))
-            .filter(p => p.status === 'active' || !p.status)
+            .filter(p => p.status === 'active' || !p.status);
+          setAllProperties(data.length > 0 ? data : DEMO_PROPERTIES);
+          const featured = [...data]
             .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
             .slice(0, 12);
-          setProperties(data.length > 0 ? data : DEMO_PROPERTIES);
+          setProperties(featured.length > 0 ? featured : DEMO_PROPERTIES);
         } else {
+          setAllProperties(DEMO_PROPERTIES);
           setProperties(DEMO_PROPERTIES);
         }
       } catch (e) {
+        setAllProperties(DEMO_PROPERTIES);
         setProperties(DEMO_PROPERTIES);
       }
       setLoading(false);
@@ -120,6 +138,31 @@ export default function HomePage() {
   }, []);
 
   const filtered = activeTab === 'all' ? properties : properties.filter(p => p.type === activeTab);
+
+  // ── Popular Cities: curated cities first (real listing counts), then any
+  // additional cities agents have added that have enough listings, using a
+  // generic fallback photo since they don't have a hand-picked image.
+  const cityCounts = allProperties.reduce((acc, p) => {
+    if (!p.city) return acc;
+    acc[p.city] = (acc[p.city] || 0) + 1;
+    return acc;
+  }, {});
+
+  const curatedCityNames = new Set(CURATED_CITIES.map(c => c.name.toLowerCase()));
+
+  const curatedTiles = CURATED_CITIES.map(c => ({
+    name: c.name,
+    img: c.img,
+    count: cityCounts[c.name] || 0,
+  }));
+
+  const extraTiles = Object.entries(cityCounts)
+    .filter(([name, count]) => !curatedCityNames.has(name.toLowerCase()) && count >= MIN_LISTINGS_FOR_CITY_TILE)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, MAX_EXTRA_CITY_TILES)
+    .map(([name, count]) => ({ name, img: FALLBACK_CITY_IMG, count }));
+
+  const displayCities = [...curatedTiles, ...extraTiles];
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -279,13 +322,13 @@ export default function HomePage() {
             <h2 className="section-title">Popular Cities</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {CITIES.map(c => (
+            {displayCities.map(c => (
               <Link key={c.name} to={`/search?city=${c.name}`} className="group relative rounded-2xl overflow-hidden h-48 cursor-pointer">
                 <img src={c.img} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <div className="absolute bottom-4 left-4 text-white">
                   <p className="font-display font-bold text-lg">{c.name}</p>
-                  <p className="text-white/70 text-sm">{c.count} listings</p>
+                  <p className="text-white/70 text-sm">{c.count > 0 ? `${c.count} listing${c.count === 1 ? '' : 's'}` : 'New on My Wari'}</p>
                 </div>
               </Link>
             ))}
